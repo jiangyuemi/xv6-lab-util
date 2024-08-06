@@ -419,7 +419,7 @@ sys_exec(void)
   int i;
   uint64 uargv, uarg;
 
-  if(argstr(0, path, MAXPATH) < 0 || argaddr(1, &uargv) < 0){
+  if(argstr(0, path, MAXPATH) < 0 || argaddr(1, &uargv) < 0){//uargv存储的是user space的指针数组的首地址,指针数组存储的是对应命令行参数的地址
     return -1;
   }
   memset(argv, 0, sizeof(argv));
@@ -427,7 +427,7 @@ sys_exec(void)
     if(i >= NELEM(argv)){
       goto bad;
     }
-    if(fetchaddr(uargv+sizeof(uint64)*i, (uint64*)&uarg) < 0){
+    if(fetchaddr(uargv+sizeof(uint64)*i, (uint64*)&uarg) < 0){ //获取地址
       goto bad;
     }
     if(uarg == 0){

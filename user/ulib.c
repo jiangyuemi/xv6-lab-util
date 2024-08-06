@@ -44,7 +44,7 @@ memset(void *dst, int c, uint n)
 }
 
 char*
-strchr(const char *s, char c)
+strchr(const char *s, char c)  //匹配到了返回匹配位置的指针，若没有则返回0
 {
   for(; *s; s++)
     if(*s == c)

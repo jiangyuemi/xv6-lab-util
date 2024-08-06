@@ -313,7 +313,7 @@ peek(char **ps, char *es, char *toks)
   char *s;
 
   s = *ps;
-  while(s < es && strchr(whitespace, *s))
+  while(s < es && strchr(whitespace, *s))   //清楚开头的空白,传递的参数是形参,单独操作的
     s++;
   *ps = s;
   return *s && strchr(toks, *s);

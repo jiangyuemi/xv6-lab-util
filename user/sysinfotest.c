@@ -1,6 +1,6 @@
 #include "kernel/types.h"
 #include "kernel/riscv.h"
-#include "kernel/sysinfo.h"
+
 #include "user/user.h"
 
 
@@ -16,7 +16,7 @@ sinfo(struct sysinfo *info) {
 // use sbrk() to count how many free physical memory pages there are.
 //
 int
-countfree()
+countfree()   //判断空闲大小计数是否存在问题
 {
   uint64 sz0 = (uint64)sbrk(0);
   struct sysinfo info;
@@ -41,16 +41,15 @@ countfree()
 void
 testmem() {
   struct sysinfo info;
-  uint64 n = countfree();
+  uint64 n = countfree();//获取空闲空间大小
   
   sinfo(&info);
-
   if (info.freemem!= n) {
     printf("FAIL: free mem %d (bytes) instead of %d\n", info.freemem, n);
     exit(1);
   }
   
-  if((uint64)sbrk(PGSIZE) == 0xffffffffffffffff){
+  if((uint64)sbrk(PGSIZE) == 0xffffffffffffffff){//这进行了sbrk一个页面大小
     printf("sbrk failed");
     exit(1);
   }
@@ -83,7 +82,6 @@ testcall() {
     printf("FAIL: sysinfo failed\n");
     exit(1);
   }
-
   if (sysinfo((struct sysinfo *) 0xeaeb0b5b00002f5e) !=  0xffffffffffffffff) {
     printf("FAIL: sysinfo succeeded with bad argument\n");
     exit(1);

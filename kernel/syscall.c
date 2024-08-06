@@ -6,7 +6,6 @@
 #include "proc.h"
 #include "syscall.h"
 #include "defs.h"
-
 // Fetch the uint64 at addr from the current process.
 int
 fetchaddr(uint64 addr, uint64 *ip)
@@ -22,7 +21,7 @@ fetchaddr(uint64 addr, uint64 *ip)
 // Fetch the nul-terminated string at addr from the current process.
 // Returns length of string, not including nul, or -1 for error.
 int
-fetchstr(uint64 addr, char *buf, int max)
+fetchstr(uint64 addr, char *buf, int max)   //addr是user space,buf是kernel space
 {
   struct proc *p = myproc();
   int err = copyinstr(p->pagetable, buf, addr, max);
@@ -32,7 +31,7 @@ fetchstr(uint64 addr, char *buf, int max)
 }
 
 static uint64
-argraw(int n)
+argraw(int n)  //获取参数a0-a5
 {
   struct proc *p = myproc();
   switch (n) {
@@ -65,7 +64,7 @@ argint(int n, int *ip)
 // Doesn't check for legality, since
 // copyin/copyout will do that.
 int
-argaddr(int n, uint64 *ip)
+argaddr(int n, uint64 *ip)//将n对应的参数放入ip指向的地址空间中
 {
   *ip = argraw(n);
   return 0;
@@ -75,7 +74,7 @@ argaddr(int n, uint64 *ip)
 // Copies into buf, at most max.
 // Returns string length if OK (including nul), -1 if error.
 int
-argstr(int n, char *buf, int max)
+argstr(int n, char *buf, int max)   //把n对应参数的值放到buf字符数组里面
 {
   uint64 addr;
   if(argaddr(n, &addr) < 0)
@@ -104,7 +103,34 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_wait(void);
 extern uint64 sys_write(void);
 extern uint64 sys_uptime(void);
-
+extern uint64 sys_trace(void);
+extern uint64 sys_sysinfo(void);
+char *syscallname[24]={
+  0,
+  "fork",
+  "exit",
+  "wait",
+  "pipe",
+  "read",
+  "kill",
+  "exec",
+  "fstat",
+  "chdir",
+  "dup",
+  "getpid",
+  "sbrk",
+  "sleep",
+  "uptime",
+  "open",
+  "write",
+  "mknod",
+  "unlink",
+  "link",
+  "mkdir",
+  "close",
+  "trace",
+  "sysinfo"
+};
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -127,6 +153,8 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_trace]   sys_trace,
+[SYS_sysinfo] sys_sysinfo,
 };
 
 void
@@ -138,6 +166,9 @@ syscall(void)
   num = p->trapframe->a7;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     p->trapframe->a0 = syscalls[num]();
+    if(p->mask&(1<<num)){
+        printf("%d: syscall %s -> %d\n",p->pid,syscallname[num],p->trapframe->a0);
+    }
   } else {
     printf("%d %s: unknown sys call %d\n",
             p->pid, p->name, num);

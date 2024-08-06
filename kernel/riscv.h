@@ -1,4 +1,4 @@
-// which hart (core) is this?
+// which hart (core) is this?   定义汇编实现功能的文件
 static inline uint64
 r_mhartid()
 {
@@ -194,7 +194,7 @@ w_pmpaddr0(uint64 x)
 }
 
 // use riscv's sv39 page table scheme.
-#define SATP_SV39 (8L << 60)
+#define SATP_SV39 (8L << 60) //satp寄存器的高四位为模式位  base,sv39(8),sv48(9)
 
 #define MAKE_SATP(pagetable) (SATP_SV39 | (((uint64)pagetable) >> 12))
 
@@ -335,8 +335,8 @@ sfence_vma()
 #define PGSIZE 4096 // bytes per page
 #define PGSHIFT 12  // bits of offset within a page
 
-#define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
-#define PGROUNDDOWN(a) (((a)) & ~(PGSIZE-1))
+#define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1)) //向上取整获取下一个虚拟页
+#define PGROUNDDOWN(a) (((a)) & ~(PGSIZE-1))  //寻找虚拟地址对应的虚拟页
 
 #define PTE_V (1L << 0) // valid
 #define PTE_R (1L << 1)
@@ -354,7 +354,7 @@ sfence_vma()
 // extract the three 9-bit page table indices from a virtual address.
 #define PXMASK          0x1FF // 9 bits
 #define PXSHIFT(level)  (PGSHIFT+(9*(level)))
-#define PX(level, va) ((((uint64) (va)) >> PXSHIFT(level)) & PXMASK)
+#define PX(level, va) ((((uint64) (va)) >> PXSHIFT(level)) & PXMASK)//获取三阶段的值9 9 9 
 
 // one beyond the highest possible virtual address.
 // MAXVA is actually one bit less than the max allowed by

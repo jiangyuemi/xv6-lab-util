@@ -16,8 +16,8 @@ trampoline:
 uservec:    
 	#
         # trap.c sets stvec to point here, so
-        # traps from user space start here,
-        # in supervisor mode, but with a
+        # traps from user space start here,     
+        # in supervisor mode, but with a        
         # user page table.
         #
         # sscratch points to where the process's p->trapframe is
@@ -25,7 +25,7 @@ uservec:
         #
         
 	# swap a0 and sscratch
-        # so that a0 is TRAPFRAME
+        # so that a0 is TRAPFRAME       a0存储sscratch的值指向trapframe的虚拟地址,sscratch存储目前a0的值 ，说白了Switch(a0,sscratch)
         csrrw a0, sscratch, a0
 
         # save the user registers in TRAPFRAME
@@ -60,7 +60,7 @@ uservec:
         sd t5, 272(a0)
         sd t6, 280(a0)
 
-	# save the user a0 in p->trapframe->a0
+	# save the user a0 in p->trapframe->a0          存储a0的值到指定位置
         csrr t0, sscratch
         sd t0, 112(a0)
 
@@ -139,3 +139,7 @@ userret:
         # return to user mode and user pc.
         # usertrapret() set up sstatus and sepc.
         sret
+
+
+#ld和sd操作的对象都是左边的寄存器，ld是load就是将右边的加载到寄存器中，sd就是store就是将寄存器的值存储在右边的哪儿
+#https://blog.csdn.net/zzy980511/article/details/130255251 参考链接

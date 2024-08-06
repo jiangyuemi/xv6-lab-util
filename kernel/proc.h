@@ -32,12 +32,12 @@ extern struct cpu cpus[NCPU];
 // sits in a page by itself just under the trampoline page in the
 // user page table. not specially mapped in the kernel page table.
 // the sscratch register points here.
-// uservec in trampoline.S saves user registers in the trapframe,
+// uservec in trampoline.S saves user registers in the trapframe,  //uservec 把保存的寄存器储存在trapframe中
 // then initializes registers from the trapframe's
 // kernel_sp, kernel_hartid, kernel_satp, and jumps to kernel_trap.
 // usertrapret() and userret in trampoline.S set up
 // the trapframe's kernel_*, restore user registers from the
-// trapframe, switch to the user page table, and enter user space.
+// trapframe, switch to the user page table, and enter user space. //usertrapret() and userret 初始化 proc
 // the trapframe includes callee-saved user registers like s0-s11 because the
 // return-to-user path via usertrapret() doesn't return through
 // the entire kernel call stack.
@@ -92,7 +92,8 @@ struct proc {
   int killed;                  // If non-zero, have been killed
   int xstate;                  // Exit status to be returned to parent's wait
   int pid;                     // Process ID
-
+  int mask;
+  
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
 

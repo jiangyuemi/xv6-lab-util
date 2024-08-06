@@ -6,7 +6,8 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
-
+#include "kernel/sysinfo.h"
+extern struct proc proc[NPROC];
 uint64
 sys_exit(void)
 {
@@ -16,7 +17,15 @@ sys_exit(void)
   exit(n);
   return 0;  // not reached
 }
-
+uint64
+sys_trace(void)
+{
+  int mask;
+  if(argint(0, &mask) < 0)return -1;
+  struct proc *p=myproc();
+  p->mask=mask;
+  return 0;
+}
 uint64
 sys_getpid(void)
 {
@@ -37,7 +46,28 @@ sys_wait(void)
     return -1;
   return wait(p);
 }
-
+uint64
+sys_sysinfo(void)
+{
+  uint64 s;
+  if(argaddr(0, &s) < 0)return -1;
+  uint size=0;
+  uint n=0;
+  struct sysinfo *q=(struct sysinfo *)s;
+  // struct proc *p;
+  // for(p = proc; p < &proc[NPROC]; p++) {
+  //   acquire(&p->lock);
+  //   if(p->state != UNUSED) {
+  //     size+=p->sz;
+  //     n++;
+  //   } else {
+  //     release(&p->lock);
+  //   }
+  // }
+  q->freemem=PHYSTOP-KERNBASE-size;
+  q->nproc=n;
+  return 0;
+}
 uint64
 sys_sbrk(void)
 {
@@ -46,7 +76,7 @@ sys_sbrk(void)
 
   if(argint(0, &n) < 0)
     return -1;
-  addr = myproc()->sz;
+  addr = myproc()->sz;  //获取的是此进程的大小
   if(growproc(n) < 0)
     return -1;
   return addr;

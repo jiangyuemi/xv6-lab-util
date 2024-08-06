@@ -1,6 +1,6 @@
+#include "kernel/sysinfo.h"
 struct stat;
 struct rtcdate;
-
 // system calls
 int fork(void);
 int exit(int) __attribute__((noreturn));
@@ -23,7 +23,9 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-
+int trace(int);
+int sysinfo(struct sysinfo *info);
+//系统调用中参数放置于对应的寄存器中的代码实现是编译器做的事情，按照一套约定
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

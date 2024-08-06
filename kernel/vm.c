@@ -78,7 +78,7 @@ kvminithart()
 //   12..20 -- 9 bits of level-0 index.
 //    0..11 -- 12 bits of byte offset within the page.
 pte_t *
-walk(pagetable_t pagetable, uint64 va, int alloc)
+walk(pagetable_t pagetable, uint64 va, int alloc)   //返回的是虚拟地址对应的第三级页表PTE的条目，里面存储的是物理页号
 {
   if(va >= MAXVA)
     panic("walk");
@@ -94,7 +94,7 @@ walk(pagetable_t pagetable, uint64 va, int alloc)
       *pte = PA2PTE(pagetable) | PTE_V;
     }
   }
-  return &pagetable[PX(0, va)];
+  return &pagetable[PX(0, va)];//里面修改的是形参的值
 }
 
 // Look up a virtual address, return the physical address,
@@ -135,7 +135,7 @@ kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm)
 // be page-aligned. Returns 0 on success, -1 if walk() couldn't
 // allocate a needed page-table page.
 int
-mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
+mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)   //安装PTE;其中PA是指最底层PTE存储的值;依次映射连续的空间页
 {
   uint64 a, last;
   pte_t *pte;
@@ -395,17 +395,17 @@ copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 // until a '\0', or max.
 // Return 0 on success, -1 on error.
 int
-copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
-{
+copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)//src is userspace,dst is kernel space
+{                                                                    //由于此时位于内核空间运用的内核页表，但是src为用户空间的va，所以要用用户页表
   uint64 n, va0, pa0;
   int got_null = 0;
 
   while(got_null == 0 && max > 0){
-    va0 = PGROUNDDOWN(srcva);
-    pa0 = walkaddr(pagetable, va0);
+    va0 = PGROUNDDOWN(srcva);    //获取虚拟页号
+    pa0 = walkaddr(pagetable, va0);  //获取物理页号
     if(pa0 == 0)
       return -1;
-    n = PGSIZE - (srcva - va0);
+    n = PGSIZE - (srcva - va0);//(srcva-va0)获取偏移量  n表示从此偏移量起此页中的剩余字节数
     if(n > max)
       n = max;
 
@@ -416,7 +416,7 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
         got_null = 1;
         break;
       } else {
-        *dst = *p;
+        *dst = *p;  //由于内核页表是直接映射，所以va==pa，除了内核空间的顶端之外不是直接映射
       }
       --n;
       --max;
@@ -425,7 +425,7 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     }
 
     srcva = va0 + PGSIZE;
-  }
+  }//虚拟地址到物理地址映射的处理过程
   if(got_null){
     return 0;
   } else {

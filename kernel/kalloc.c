@@ -1,7 +1,7 @@
 // Physical memory allocator, for user processes,
 // kernel stacks, page-table pages,
 // and pipe buffers. Allocates whole 4096-byte pages.
-
+//用途 用于物理页的分配过程，结构体run的next指针存储于空闲页的首8个字节，freelist指向的空闲页的首链表单位,操作的是物理空间
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"
@@ -31,7 +31,7 @@ kinit()
 }
 
 void
-freerange(void *pa_start, void *pa_end)
+freerange(void *pa_start, void *pa_end)  //释放范围内的空间(以页为单位)
 {
   char *p;
   p = (char*)PGROUNDUP((uint64)pa_start);
@@ -44,7 +44,7 @@ freerange(void *pa_start, void *pa_end)
 // call to kalloc().  (The exception is when
 // initializing the allocator; see kinit above.)
 void
-kfree(void *pa)
+kfree(void *pa)            //释放一个物理页
 {
   struct run *r;
 
@@ -66,7 +66,7 @@ kfree(void *pa)
 // Returns a pointer that the kernel can use.
 // Returns 0 if the memory cannot be allocated.
 void *
-kalloc(void)
+kalloc(void)          //分配一个物理页
 {
   struct run *r;
 
