@@ -9,7 +9,7 @@
 
 // Fetch the uint64 at addr from the current process.
 int
-fetchaddr(uint64 addr, uint64 *ip)
+fetchaddr(uint64 addr, uint64 *ip)  //获取用户空间的地址对应的物理地址
 {
   struct proc *p = myproc();
   if(addr >= p->sz || addr+sizeof(uint64) > p->sz)
@@ -22,7 +22,7 @@ fetchaddr(uint64 addr, uint64 *ip)
 // Fetch the nul-terminated string at addr from the current process.
 // Returns length of string, not including nul, or -1 for error.
 int
-fetchstr(uint64 addr, char *buf, int max)
+fetchstr(uint64 addr, char *buf, int max)  //将用户空间对应地址(addr)的字符串复制到内核空间中的buf中
 {
   struct proc *p = myproc();
   int err = copyinstr(p->pagetable, buf, addr, max);
@@ -32,7 +32,7 @@ fetchstr(uint64 addr, char *buf, int max)
 }
 
 static uint64
-argraw(int n)
+argraw(int n)  //获取用户空间传递的参数
 {
   struct proc *p = myproc();
   switch (n) {
@@ -55,7 +55,7 @@ argraw(int n)
 
 // Fetch the nth 32-bit system call argument.
 int
-argint(int n, int *ip)
+argint(int n, int *ip)   //获取一个用户空间传递的一个整数
 {
   *ip = argraw(n);
   return 0;
@@ -65,7 +65,7 @@ argint(int n, int *ip)
 // Doesn't check for legality, since
 // copyin/copyout will do that.
 int
-argaddr(int n, uint64 *ip)
+argaddr(int n, uint64 *ip)   //获取用户空间传递的一个地址
 {
   *ip = argraw(n);
   return 0;
@@ -75,7 +75,7 @@ argaddr(int n, uint64 *ip)
 // Copies into buf, at most max.
 // Returns string length if OK (including nul), -1 if error.
 int
-argstr(int n, char *buf, int max)
+argstr(int n, char *buf, int max)   //addr存储的值是user space 对应的地址  这个函数的作用是将参数n对应的地址的字符串传递到内核空间的buf中
 {
   uint64 addr;
   if(argaddr(n, &addr) < 0)

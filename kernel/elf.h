@@ -25,12 +25,12 @@ struct elfhdr {
 struct proghdr {
   uint32 type;
   uint32 flags;
-  uint64 off;
+  uint64 off;     //可执行文件的偏移量
   uint64 vaddr;
   uint64 paddr;
-  uint64 filesz;
-  uint64 memsz;
-  uint64 align;
+  uint64 filesz;  //此映射区对应的大小
+  uint64 memsz;   //对应内存中存储的大小
+  uint64 align;   //对齐要求，毕竟分页，单页2**12byte
 };
 
 // Values for Proghdr type

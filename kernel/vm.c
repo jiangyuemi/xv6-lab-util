@@ -78,7 +78,7 @@ kvminithart()
 //   12..20 -- 9 bits of level-0 index.
 //    0..11 -- 12 bits of byte offset within the page.
 pte_t *
-walk(pagetable_t pagetable, uint64 va, int alloc)
+walk(pagetable_t pagetable, uint64 va, int alloc)  //找寻叶子节点PTE，即这里面存放的是虚拟页对应的物理页号和标志位
 {
   if(va >= MAXVA)
     panic("walk");
@@ -101,7 +101,7 @@ walk(pagetable_t pagetable, uint64 va, int alloc)
 // or 0 if not mapped.
 // Can only be used to look up user pages.
 uint64
-walkaddr(pagetable_t pagetable, uint64 va)
+walkaddr(pagetable_t pagetable, uint64 va)  //判断用户空间是否可用(是否有效或者用户空间可执行)
 {
   pte_t *pte;
   uint64 pa;
@@ -135,7 +135,7 @@ kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm)
 // be page-aligned. Returns 0 on success, -1 if walk() couldn't
 // allocate a needed page-table page.
 int
-mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
+mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)  //建立叶映射
 {
   uint64 a, last;
   pte_t *pte;
@@ -163,7 +163,7 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
 // page-aligned. The mappings must exist.
 // Optionally free the physical memory.
 void
-uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
+uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)   //删除叶映射
 {
   uint64 a;
   pte_t *pte;
@@ -176,7 +176,7 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
       panic("uvmunmap: walk");
     if((*pte & PTE_V) == 0)
       panic("uvmunmap: not mapped");
-    if(PTE_FLAGS(*pte) == PTE_V)
+    if(PTE_FLAGS(*pte) == PTE_V)  //未到最底层
       panic("uvmunmap: not a leaf");
     if(do_free){
       uint64 pa = PTE2PA(*pte);
@@ -189,7 +189,7 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
 // create an empty user page table.
 // returns 0 if out of memory.
 pagetable_t
-uvmcreate()
+uvmcreate()   //创建一个页表
 {
   pagetable_t pagetable;
   pagetable = (pagetable_t) kalloc();
@@ -254,7 +254,7 @@ uvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
     return oldsz;
 
   if(PGROUNDUP(newsz) < PGROUNDUP(oldsz)){
-    int npages = (PGROUNDUP(oldsz) - PGROUNDUP(newsz)) / PGSIZE;
+    int npages = (PGROUNDUP(oldsz) - PGROUNDUP(newsz)) / PGSIZE;    //计算删除几个页面
     uvmunmap(pagetable, PGROUNDUP(newsz), npages, 1);
   }
 
@@ -298,7 +298,7 @@ uvmfree(pagetable_t pagetable, uint64 sz)
 // returns 0 on success, -1 on failure.
 // frees any allocated pages on failure.
 int
-uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
+uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)   //这并没有使用写时复制的技巧
 {
   pte_t *pte;
   uint64 pa, i;
@@ -330,7 +330,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
 // mark a PTE invalid for user access.
 // used by exec for the user stack guard page.
 void
-uvmclear(pagetable_t pagetable, uint64 va)
+uvmclear(pagetable_t pagetable, uint64 va)  //将叶PTE标志位不为用户使用
 {
   pte_t *pte;
   
@@ -431,4 +431,26 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   } else {
     return -1;
   }
+}
+//实现vmprint
+int count=1;
+void vmprint(pagetable_t pagetable)
+{
+  if(count==1)printf("page table %p\n",pagetable);
+  if(count>3)return ;
+  for(int i = 0; i < 512; i++){
+      pte_t pte = pagetable[i];
+      if(pte & PTE_V){
+        // this PTE points to a lower-level page table.
+        uint64 child = PTE2PA(pte);
+        for(int j=0;j<count;j++)
+        {
+            printf(" ..");
+        }
+        printf("%d: pte %p pa %p\n",i,pte,child);
+        count++;
+        vmprint((pagetable_t)child);
+        count--;
+      }
+    }
 }
